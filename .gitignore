@@ -131,3 +131,4 @@ dmypy.json
 *.pt
 *.png
 *.jpg
+dataset_chache/*

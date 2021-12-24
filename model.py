@@ -93,7 +93,7 @@ class ToRGB(nn.Module):
 
 class GeneratorBlock(nn.Module):
     """Some Information about GeneratorBlock"""
-    def __init__(self, input_channels, output_channels, upsample=False, blur=False, noise_gain=0.1, style_dim=512):
+    def __init__(self, input_channels, output_channels, upsample=False, noise_gain=0.1, style_dim=512):
         super(GeneratorBlock, self).__init__()
         self.upsample = upsample
         self.upsample_layer = nn.Upsample(scale_factor=2, mode='nearest')
@@ -150,8 +150,9 @@ def exists(thing):
 class Generator(nn.Module):
     """Some Information about Generator"""
     """initial resolution: 4x4"""
-    def __init__(self, initial_channels = 512):
+    def __init__(self, initial_channels = 512, style_dim=512):
         super(Generator, self).__init__()
+        self.style_dim = style_dim
         self.alpha = 1
         self.layers = nn.ModuleList([])
         self.last_channels = initial_channels
@@ -179,7 +180,7 @@ class Generator(nn.Module):
         return out
     
     def add_layer(self, channels):
-        self.layers.append(GeneratorBlock(self.last_channels, channels, upsample=True))
+        self.layers.append(GeneratorBlock(self.last_channels, channels, upsample=True, style_dim=self.style_dim))
         self.last_channels = channels
     
     @property
@@ -253,18 +254,16 @@ class MappingNetwork(nn.Module):
         self.seq = nn.Sequential(*[EqualLinear(latent_dim, latent_dim) for _ in range(num_layers)])
     def forward(self, x):
         return self.seq(x)
-        
-G = Generator()
-D = Discriminator()
-M = MappingNetwork(512)
-G.add_layer(256)
-D.add_layer(256)
-G.add_layer(128)
-D.add_layer(128)
 
-style = torch.randn(2, 512)
-style = M(style)
-out = G(style)
-print(out.shape)
-dout = D(out)
-print(dout)
+class StyleBasedGAN(nn.Module):
+    """Some Information about StyleBasedGAN"""
+    def __init__(self, latent_dim, initial_channels=512, num_mapping_network_layers=8):
+        super(StyleBasedGAN, self).__init__()
+        self.generator = Generator(initial_channels, style_dim=latent_dim)
+        self.disccriminator = Discriminator(initial_channels)
+        self.mapping_network = MappingNetwork(latent_dim, num_layers=num_mapping_network_layers)
+    
+    def add_layer(self, channels):
+        self.generator.add_layer(channels)
+        self.disccriminator.add_layer(channels)
+        
