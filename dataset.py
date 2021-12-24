@@ -49,6 +49,8 @@ class ImageDataset(torch.utils.data.Dataset):
             # save to chache directory
             path = os.path.join(self.chache_dir, str(i) + ".jpg")
             empty.save(path)
+            del img
+            del empty
         
     def __getitem__(self, index):
         # load image

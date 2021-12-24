@@ -31,6 +31,8 @@ class StyleBasedGANTrainer:
     
     def train(self, dataset: ImageDataset, initial_batch_size=64, num_epochs_per_resolution=1, max_resolution=1024, learning_rate=1e-4, save_path='model.pt', results_dir_path='results/'):
         bs = initial_batch_size
+        if not os.path.exists(save_path):
+            os.mkdir(results_dir_path)
         while self.resolution <= max_resolution:
             self.train_resolution(dataset, batch_size=bs, num_epochs=num_epochs_per_resolution, learning_rate=learning_rate, save_path=save_path, results_dir_path=results_dir_path)
             channels = self.g.last_channels // 2
