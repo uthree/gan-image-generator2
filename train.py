@@ -16,4 +16,4 @@ dataset = ImageDataset(source_dir_pathes=[
     #"/mnt/d/local-develop/AnimeIconGenerator128x_v3/small_dataset128x",
 ])
 
-trainer.train(dataset=dataset, initial_batch_size=32, num_epochs_per_resolution=1, max_resolution=1024, learning_rate=1e-4, save_path=model_path, results_dir_path='results/')
+trainer.train(dataset=dataset, initial_batch_size=32, num_epochs_per_resolution=10, max_resolution=1024, learning_rate=1e-4, save_path=model_path, results_dir_path='results/')

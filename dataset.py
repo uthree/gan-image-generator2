@@ -30,7 +30,7 @@ class ImageDataset(torch.utils.data.Dataset):
             os.mkdir(self.chache_dir)
         
         print("resizing images... to size: {}".format(size))
-        for i in range(len(self.image_path_list)):
+        for i in tqdm(range(len(self.image_path_list))):
             img_path = self.image_path_list[i]
             img = Image.open(img_path)
             # get height and width
