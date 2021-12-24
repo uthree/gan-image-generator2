@@ -162,11 +162,13 @@ class Generator(nn.Module):
         self.sigmoid = nn.Sigmoid()
         
     def forward(self, y):
+        if type(y) != list:
+            y = [y for _ in range(len(self.layers)+1)]
         num_layers = len(self.layers)
-        x = self.const.repeat(y.shape[0], 1, 1, 1)
-        x, out = self.first_layer(x, y)
+        x = self.const.repeat(y[0].shape[0], 1, 1, 1)
+        x, out = self.first_layer(x, y[0])
         for i in range(num_layers):
-            x, rgb = self.layers[i](x, y)
+            x, rgb = self.layers[i](x, y[i+1])
             out = self.blur(self.upsample(out))
             
             if i == num_layers - 1:
@@ -175,7 +177,6 @@ class Generator(nn.Module):
                 out += rgb
         out = self.sigmoid(out)
         return out
-        
     
     def add_layer(self, channels):
         self.layers.append(GeneratorBlock(self.last_channels, channels, upsample=True))
@@ -258,7 +259,7 @@ D = Discriminator()
 G.add_layer(256)
 D.add_layer(256)
 G.add_layer(128)
-D.add_layer(1289)
+D.add_layer(128)
 
 style = torch.randn(2, 512)
 out = G(style)
