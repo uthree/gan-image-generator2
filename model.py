@@ -113,6 +113,7 @@ class GeneratorBlock(nn.Module):
         self.activation1 = nn.LeakyReLU()
         
         self.to_rgb = ToRGB(output_channels)
+        self.tanh = nn.Tanh()
 
     def forward(self, x, y):
         if self.upsample:
@@ -130,6 +131,7 @@ class GeneratorBlock(nn.Module):
         x = self.activation1(x)
         
         rgb = self.to_rgb(x)
+        rgb = self.tanh(rgb)
         return x, rgb
     
     @property
@@ -177,7 +179,6 @@ class Generator(nn.Module):
                 out += rgb * self.alpha
             else:
                 out += rgb
-        out = self.sigmoid(out)
         return out
     
     def add_layer(self, channels):
