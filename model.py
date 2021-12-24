@@ -250,18 +250,20 @@ class MappingNetwork(nn.Module):
     """Some Information about MappingNetwork"""
     def __init__(self, latent_dim, num_layers=8):
         super(MappingNetwork, self).__init__()
-        self.seq = nn.Sequential([EqualLinear(latent_dim, latent_dim) for _ in range(num_layers)])
+        self.seq = nn.Sequential(*[EqualLinear(latent_dim, latent_dim) for _ in range(num_layers)])
     def forward(self, x):
         return self.seq(x)
         
 G = Generator()
 D = Discriminator()
+M = MappingNetwork(512)
 G.add_layer(256)
 D.add_layer(256)
 G.add_layer(128)
 D.add_layer(128)
 
 style = torch.randn(2, 512)
+style = M(style)
 out = G(style)
 print(out.shape)
 dout = D(out)
