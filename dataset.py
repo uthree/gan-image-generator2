@@ -10,15 +10,18 @@ import numpy as np
 
 class ImageDataset(torch.utils.data.Dataset):
     """Some Information about ImageDataset"""
-    def __init__(self, source_dir_pathes=[], chache_dir="./dataset_chache/", size=8):
+    def __init__(self, source_dir_pathes=[], chache_dir="./dataset_chache/", size=4):
         super(ImageDataset, self).__init__()
         self.image_path_list = []
         for dir_path in source_dir_pathes:
             self.image_path_list += [ os.path.join(dir_path, p) for p in  os.listdir(dir_path) ]
         self.chache_dir = chache_dir
+        self.size = -1
         self.set_size(size)
     
     def set_size(self, size):
+        if self.size == size:
+            return
         self.size = size
         
         # initialize directory
@@ -57,10 +60,8 @@ class ImageDataset(torch.utils.data.Dataset):
         img = img / 255.0
         img = np.transpose(img, (2, 0, 1))
         # to tensor
-        return torch.tensor(img)
+        return torch.FloatTensor(img)
 
     def __len__(self):
         return self.image_path_list.__len__()
     
-# test
-ds = ImageDataset(source_dir_pathes=["/mnt/c/Users/uthree/Downloads/hogedir"])

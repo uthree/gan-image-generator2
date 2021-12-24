@@ -78,6 +78,7 @@ class BlurRGB(nn.Module):
         self.kernel = self.kernel.view(1, 1, 3, 3)
         self.kernel = self.kernel.repeat(3, 1, 1, 1)
     def forward(self, x):
+        self.kernel = self.kernel.to(x.device)
         return F.conv2d(x, self.kernel, stride=1, padding=1, groups=x.shape[1])
 
 class ToRGB(nn.Module):
@@ -156,7 +157,7 @@ class Generator(nn.Module):
         self.alpha = 1
         self.layers = nn.ModuleList([])
         self.last_channels = initial_channels
-        self.first_layer = GeneratorBlock(initial_channels, initial_channels, upsample=False, blur=False)
+        self.first_layer = GeneratorBlock(initial_channels, initial_channels, upsample=False)
         self.const = nn.Parameter(torch.zeros(initial_channels, 4, 4))
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
         self.blur = BlurRGB()
@@ -259,6 +260,7 @@ class StyleBasedGAN(nn.Module):
     """Some Information about StyleBasedGAN"""
     def __init__(self, latent_dim, initial_channels=512, num_mapping_network_layers=8):
         super(StyleBasedGAN, self).__init__()
+        self.latent_dim = latent_dim
         self.generator = Generator(initial_channels, style_dim=latent_dim)
         self.disccriminator = Discriminator(initial_channels)
         self.mapping_network = MappingNetwork(latent_dim, num_layers=num_mapping_network_layers)
