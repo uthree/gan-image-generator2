@@ -1,3 +1,4 @@
+from numpy import mod
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -86,7 +87,6 @@ class ToRGB(nn.Module):
         self.conv = nn.Conv2d(input_channels, 3, kernel_size=1, stride=1, padding=0)
         self.sigmoid = nn.Sigmoid()
     def forward(self, x):
-        print(x.shape)
         x = self.conv(x)
         x = self.sigmoid(x)
         return x
@@ -152,13 +152,14 @@ class Generator(nn.Module):
     """initial resolution: 4x4"""
     def __init__(self, initial_channels = 512):
         super(Generator, self).__init__()
-        self.alpha = 0
+        self.alpha = 1
         self.layers = nn.ModuleList([])
         self.last_channels = initial_channels
         self.first_layer = GeneratorBlock(initial_channels, initial_channels, upsample=False, blur=False)
         self.const = nn.Parameter(torch.zeros(initial_channels, 4, 4))
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
         self.blur = BlurRGB()
+        self.sigmoid = nn.Sigmoid()
         
     def forward(self, y):
         num_layers = len(self.layers)
@@ -166,8 +167,14 @@ class Generator(nn.Module):
         x, out = self.first_layer(x, y)
         for i in range(num_layers):
             x, rgb = self.layers[i](x, y)
-            out = self.blur(self.upsample(out)) + rgb
-        return out / num_layers
+            out = self.blur(self.upsample(out))
+            
+            if i == num_layers - 1:
+                out += rgb * self.alpha
+            else:
+                out += rgb
+        out = self.sigmoid(out)
+        return out
         
     
     def add_layer(self, channels):
@@ -182,10 +189,79 @@ class Generator(nn.Module):
     def alpha(self, value):
         self._alpha = value
 
+
+class DiscriminatorBlock(nn.Module):
+    """Some Information about DiscriminatorBlock"""
+    def __init__(self, input_channels, output_channels):
+        super(DiscriminatorBlock, self).__init__()
+        self.conv1 = nn.Conv2d(input_channels, input_channels, 3, stride=1, padding=1)
+        self.activation1 = nn.LeakyReLU()
+        self.conv2 = nn.Conv2d(input_channels, output_channels, 3, stride=1, padding=1)
+        self.activation2 = nn.LeakyReLU()
+        self.down_sample = nn.AvgPool2d(2, stride=2, padding=0)
+        self.channel_conv = nn.Conv2d(input_channels, output_channels, 1, stride=1, padding=0)
+    def forward(self, x):
+        x_down = self.down_sample(x)
+        x_down = self.channel_conv(x_down)
+        x = self.conv1(x)
+        x = self.activation1(x)
+        x = self.conv2(x)
+        x = self.activation2(x)
+        x = self.down_sample(x)
+        x += x_down
+        return x
+
+class Discriminator(nn.Module):
+    """Some Information about Discriminator"""
+    def __init__(self, initial_channel=512):
+        super(Discriminator, self).__init__()
+        self.from_rgb = nn.Conv2d(3, initial_channel, 1, stride=1, padding=0)
+        self.layers = nn.ModuleList([])
+        self.fc = nn.Linear(4*4*initial_channel, 1)
+        self.sigmoid = nn.Sigmoid()
+        self.last_channels = initial_channel
+
+    def forward(self, x):
+        x = self.from_rgb(x)
+        for layer in self.layers:
+            x = layer(x)
+        x = x.view(x.shape[0], -1)
+        x = self.fc(x)
+        x = self.sigmoid(x)
+        return x
+    
+    def add_layer(self, channels):
+        self.layers.insert(0, DiscriminatorBlock(channels, self.last_channels))
+        self.from_rgb = nn.Conv2d(3, channels, 1, stride=1, padding=0)
+        self.last_channels = channels
+        
+class EqualLinear(nn.Module):
+    """Some Information about EqualLinear"""
+    def __init__(self, input_dim, output_dim):
+        super(EqualLinear, self).__init__()
+        self.weight = nn.Parameter(torch.randn(output_dim, input_dim))
+        self.bias = nn.Parameter(torch.zeros(output_dim))
+        
+    def forward(self, x):
+        return F.linear(x, self.weight, self.bias)
+    
+class MappingNetwork(nn.Module):
+    """Some Information about MappingNetwork"""
+    def __init__(self, latent_dim, num_layers=8):
+        super(MappingNetwork, self).__init__()
+        self.seq = nn.Sequential([EqualLinear(latent_dim, latent_dim) for _ in range(num_layers)])
+    def forward(self, x):
+        return self.seq(x)
+        
 G = Generator()
+D = Discriminator()
 G.add_layer(256)
+D.add_layer(256)
 G.add_layer(128)
+D.add_layer(1289)
 
 style = torch.randn(2, 512)
 out = G(style)
 print(out.shape)
+dout = D(out)
+print(dout)
