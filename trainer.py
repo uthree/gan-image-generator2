@@ -34,6 +34,7 @@ class StyleBasedGANTrainer:
         if not os.path.exists(results_dir_path):
             os.mkdir(results_dir_path)
         while self.resolution <= max_resolution:
+            self.resolution = int(4 * 2 ** (len(self.g.layers)))
             self.train_resolution(dataset, batch_size=bs, num_epochs=num_epochs_per_resolution, learning_rate=learning_rate, save_path=save_path, results_dir_path=results_dir_path)
             channels = self.g.last_channels // 2
             if channels <= 8:
@@ -43,12 +44,12 @@ class StyleBasedGANTrainer:
             self.resolution = int(4 * 2 ** (len(self.g.layers)))
             
             bs = bs // 2
-            if bs < 1:
-                bs = 1
-            print(f"Added layer with {channels} channels. now {len(self.g.layers)} layers.")
+            if bs < 2:
+                bs = 2
+            print(f"Added layer with {channels} channels. now {len(self.g.layers)} layers. batch size: {bs}.")
 
         
-    def train_resolution(self, dataset: ImageDataset, batch_size=1, num_epochs=1, learning_rate=1e-4, save_path='model.pt', results_dir_path='results/'):
+    def train_resolution(self, dataset: ImageDataset, batch_size=1, num_epochs=1, learning_rate=1e-4, save_path='model.pt', results_dir_path='results/', divergense_loss_weight=0.1):
         dataset.set_size(self.resolution)
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         num_cpus = multiprocessing.cpu_count() - 1
@@ -89,7 +90,14 @@ class StyleBasedGANTrainer:
                 fake_image = g(z)
                 
                 g_fake_loss = criterion(d(fake_image), torch.ones(N, 1).to(device))
-                g_loss = g_fake_loss
+                
+                # divergence loss
+                image_sigma = fake_image.detach().std(dim=0).mean()
+                z_sigma = z.detach().std(dim=0).mean()
+                sigma = (image_sigma + z_sigma) / 2
+                g_diversity_loss = 1 / (sigma ** 2)
+                
+                g_loss = g_fake_loss + g_diversity_loss * divergense_loss_weight
                 g_loss.backward()
                 optimizer_g.step()
                 optimizer_m.step()
@@ -114,5 +122,20 @@ class StyleBasedGANTrainer:
                     img = img.astype(np.uint8)
                     img = Image.fromarray(np.transpose(img, (1, 2, 0)))
                     img.save(os.path.join(results_dir_path, f"{epoch}_{i}.png"))
-                
                     
+    @torch.no_grad()
+    def generate_images(self, num_images):
+        results = []
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        m = self.m.to(device)
+        g = self.g.to(device)
+        for i in range(num_images):
+            z = torch.randn(1, self.stylegan.latent_dim).to(device)
+            z = m(z)
+            img = g(z)
+            img = img.detach().cpu().numpy()[0]
+            img = np.transpose(img, (1, 2, 0))
+            img = img * 255.0
+            img = img.astype(np.uint8)
+            results.append(img)
+        return results

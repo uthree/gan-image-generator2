@@ -10,12 +10,13 @@ import numpy as np
 
 class ImageDataset(torch.utils.data.Dataset):
     """Some Information about ImageDataset"""
-    def __init__(self, source_dir_pathes=[], chache_dir="./dataset_chache/", size=4):
+    def __init__(self, source_dir_pathes=[], chache_dir="./dataset_chache/", size=4, max_len=5000):
         super(ImageDataset, self).__init__()
         self.image_path_list = []
         for dir_path in source_dir_pathes:
             self.image_path_list += [ os.path.join(dir_path, p) for p in  os.listdir(dir_path) ]
         self.chache_dir = chache_dir
+        self.image_path_list = self.image_path_list[:max_len]
         self.size = -1
         self.set_size(size)
     

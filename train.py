@@ -12,9 +12,9 @@ else:
     print("Created new model.")
 
 dataset = ImageDataset(source_dir_pathes=[
-    #"/mnt/d/local-develop/lineart2image_data_generator/colorized_1024x",
+    "/mnt/d/local-develop/lineart2image_data_generator/colorized_1024x",
     #"/mnt/d/local-develop/lineart2image_data_generator/colorized/",
-    "/mnt/d/local-develop/AnimeIconGenerator128x_v3/small_dataset128x",
+    #"/mnt/d/local-develop/AnimeIconGenerator128x_v3/small_dataset128x",
 ])
 
-trainer.train(dataset=dataset, initial_batch_size=32, num_epochs_per_resolution=20, max_resolution=1024, learning_rate=1e-4, save_path=model_path, results_dir_path='results/')
+trainer.train(dataset=dataset, initial_batch_size=32, num_epochs_per_resolution=100, max_resolution=1024, learning_rate=1e-4, save_path=model_path, results_dir_path='results/')
