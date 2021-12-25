@@ -97,8 +97,7 @@ class StyleBasedGANTrainer:
                 
                 # divergence loss
                 image_sigma = fake_image.std(dim=0).mean()
-                z_sigma = z.std(dim=0).mean()
-                g_diversity_loss = -torch.log(image_sigma) + image_sigma - torch.log(z_sigma) + z_sigma
+                g_diversity_loss = -torch.log(image_sigma) + image_sigma 
                 
                 g_loss = g_fake_loss + g_diversity_loss * divergense_loss_weight
                 g_loss.backward()
