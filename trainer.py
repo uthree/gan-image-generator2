@@ -29,13 +29,13 @@ class StyleBasedGANTrainer:
     def save(self, path='model.pt'):
         torch.save(self, path)
     
-    def train(self, dataset: ImageDataset, initial_batch_size=64, num_epochs_per_resolution=1, max_resolution=1024, learning_rate=1e-4, save_path='model.pt', results_dir_path='results/', checkpoint_dir_path='checkpoints/', divergense_loss_weight=1.0):
+    def train(self, dataset: ImageDataset, initial_batch_size=64, num_epochs_per_resolution=1, max_resolution=1024, learning_rate=1e-4, save_path='model.pt', results_dir_path='results/', checkpoints_dir_path='checkpoints/', divergense_loss_weight=1.0):
         bs = initial_batch_size
         if not os.path.exists(results_dir_path):
             os.mkdir(results_dir_path)
         while self.resolution <= max_resolution:
             self.resolution = int(4 * 2 ** (len(self.g.layers)))
-            self.train_resolution(dataset, batch_size=bs, num_epochs=num_epochs_per_resolution, learning_rate=learning_rate, save_path=save_path, results_dir_path=results_dir_path, checkpoint_dir_path=checkpoint_dir_path, divergense_loss_weight=divergense_loss_weight)
+            self.train_resolution(dataset, batch_size=bs, num_epochs=num_epochs_per_resolution, learning_rate=learning_rate, save_path=save_path, results_dir_path=results_dir_path, checkpoints_dir_path=checkpoints_dir_path, divergense_loss_weight=divergense_loss_weight)
             channels = self.g.last_channels // 2
             if channels <= 8:
                 channels = 8

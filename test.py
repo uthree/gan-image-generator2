@@ -1,4 +1,5 @@
 import os
+import sys
 
 from trainer import StyleBasedGANTrainer
 from dataset import ImageDataset
@@ -11,7 +12,12 @@ test_result_dir = './tests'
 trainer = StyleBasedGANTrainer.load(model_path)
 print("Loaded model from disk.")
 
-images = trainer.generate_images(5)
+if len(sys.argv) > 1:
+    num_images = int(sys.argv[1])
+else:
+    num_images = 1
+
+images = trainer.generate_images(num_images)
 
 if not os.path.exists(test_result_dir):
     os.mkdir(test_result_dir)

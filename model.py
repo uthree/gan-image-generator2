@@ -221,7 +221,7 @@ class DiscriminatorBlock(nn.Module):
 
 class Discriminator(nn.Module):
     """Some Information about Discriminator"""
-    def __init__(self, initial_channel=512, latent_dim = 512):
+    def __init__(self, initial_channel=512):
         super(Discriminator, self).__init__()
         self.alpha = 0
         self.layers = nn.ModuleList([DiscriminatorBlock(initial_channel, initial_channel, downsample=False)])
@@ -271,7 +271,7 @@ class StyleBasedGAN(nn.Module):
         super(StyleBasedGAN, self).__init__()
         self.latent_dim = latent_dim
         self.generator = Generator(initial_channels, style_dim=latent_dim)
-        self.disccriminator = Discriminator(initial_channels, latent_dim=latent_dim)
+        self.disccriminator = Discriminator(initial_channels)
         self.mapping_network = MappingNetwork(latent_dim, num_layers=num_mapping_network_layers)
     
     def add_layer(self, channels):
