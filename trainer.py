@@ -52,7 +52,7 @@ class StyleBasedGANTrainer:
             print(f"Added layer with {channels} channels. now {len(self.g.layers)} layers. batch size: {bs}.")
 
         
-    def train_resolution(self, dataset: ImageDataset, batch_size=1, num_epochs=1, learning_rate=1e-4, save_path='model.pt', results_dir_path='results/', divergense_loss_weight=4.0):
+    def train_resolution(self, dataset: ImageDataset, batch_size=1, num_epochs=1, learning_rate=1e-4, save_path='model.pt', results_dir_path='results/', divergense_loss_weight=2.0):
         dataset.set_size(self.resolution)
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         num_cpus = multiprocessing.cpu_count() - 1
@@ -96,8 +96,9 @@ class StyleBasedGANTrainer:
                 g_fake_loss = criterion(d(fake_image), torch.ones(N, 1).to(device))
                 
                 # divergence loss
-                image_sigma = (fake_image.std(dim=0)**2).mean()
-                g_diversity_loss = -torch.log(image_sigma) + image_sigma
+                image_sigma = fake_image.std(dim=0).mean()
+                z_sigma = z.std(dim=0).mean()
+                g_diversity_loss = -torch.log(image_sigma) + image_sigma - torch.log(z_sigma) + z_sigma
                 
                 g_loss = g_fake_loss + g_diversity_loss * divergense_loss_weight
                 g_loss.backward()
