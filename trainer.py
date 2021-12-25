@@ -96,7 +96,7 @@ class StyleBasedGANTrainer:
                 g_fake_loss = criterion(d(fake_image), torch.ones(N, 1).to(device))
                 
                 # divergence loss
-                image_sigma = fake_image.std(dim=0).mean() ** 2
+                image_sigma = (fake_image.std(dim=0)**2).mean()
                 g_diversity_loss = -torch.log(image_sigma) + image_sigma
                 
                 g_loss = g_fake_loss + g_diversity_loss * divergense_loss_weight

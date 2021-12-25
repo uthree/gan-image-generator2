@@ -86,10 +86,8 @@ class ToRGB(nn.Module):
     def __init__(self, input_channels):
         super(ToRGB, self).__init__()
         self.conv = nn.Conv2d(input_channels, 3, kernel_size=1, stride=1, padding=0)
-        self.sigmoid = nn.Sigmoid()
     def forward(self, x):
         x = self.conv(x)
-        x = self.sigmoid(x)
         return x
 
 class GeneratorBlock(nn.Module):
@@ -161,7 +159,7 @@ class Generator(nn.Module):
         self.const = nn.Parameter(torch.zeros(initial_channels, 4, 4))
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
         self.blur = BlurRGB()
-        self.sigmoid = nn.Sigmoid()
+        self.sigmoid = nn.Tanh()
         
     def forward(self, y):
         if type(y) != list:
@@ -177,8 +175,7 @@ class Generator(nn.Module):
                 out += rgb * self.alpha
             else:
                 out += rgb
-        
-        return out
+        return self.tanh(out)
     
     def add_layer(self, channels):
         self.layers.append(GeneratorBlock(self.last_channels, channels, upsample=True, style_dim=self.style_dim))
