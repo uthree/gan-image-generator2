@@ -192,13 +192,13 @@ class Generator(nn.Module):
 
 class DiscriminatorBlock(nn.Module):
     """Some Information about DiscriminatorBlock"""
-    def __init__(self, input_channels, output_channels, downsample=True):
+    def __init__(self, input_channels, output_channels, downsample=True, dropout=0):
         super(DiscriminatorBlock, self).__init__()
         self.conv1 = nn.Conv2d(input_channels, input_channels, 3, stride=1, padding=1)
-        self.dropout1 = nn.Dropout2d(p=0.25)
+        self.dropout1 = nn.Dropout2d(p=dropout)
         self.activation1 = nn.LeakyReLU()
         self.conv2 = nn.Conv2d(input_channels, output_channels, 3, stride=1, padding=1)
-        self.dropout2 = nn.Dropout2d(p=0.25)
+        self.dropout2 = nn.Dropout2d(p=dropout)
         self.activation2 = nn.LeakyReLU()
         self.down_sample = nn.AvgPool2d(2, stride=2, padding=0)
         self.channel_conv = nn.Conv2d(input_channels, output_channels, 1, stride=1, padding=0)
@@ -221,11 +221,11 @@ class DiscriminatorBlock(nn.Module):
 
 class Discriminator(nn.Module):
     """Some Information about Discriminator"""
-    def __init__(self, initial_channel=512):
+    def __init__(self, initial_channel=512, latent_dim = 512):
         super(Discriminator, self).__init__()
         self.alpha = 0
         self.layers = nn.ModuleList([DiscriminatorBlock(initial_channel, initial_channel, downsample=False)])
-        self.fc = nn.Linear(4*4*initial_channel, 1)
+        self.fc= nn.Linear(4*4*initial_channel, 1)
         self.sigmoid = nn.Sigmoid()
         self.last_channels = initial_channel
         self.downsample = nn.AvgPool2d(2, stride=2, padding=0)
@@ -271,7 +271,7 @@ class StyleBasedGAN(nn.Module):
         super(StyleBasedGAN, self).__init__()
         self.latent_dim = latent_dim
         self.generator = Generator(initial_channels, style_dim=latent_dim)
-        self.disccriminator = Discriminator(initial_channels)
+        self.disccriminator = Discriminator(initial_channels, latent_dim=latent_dim)
         self.mapping_network = MappingNetwork(latent_dim, num_layers=num_mapping_network_layers)
     
     def add_layer(self, channels):
