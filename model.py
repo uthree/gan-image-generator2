@@ -177,7 +177,7 @@ class Generator(nn.Module):
                 out += rgb * self.alpha
             else:
                 out += rgb
-        out = out / num_layers
+        out = out / (num_layers + 1)
         out = self.sigmoid(out)
         return out
     
