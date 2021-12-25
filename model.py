@@ -113,7 +113,6 @@ class GeneratorBlock(nn.Module):
         self.activation1 = nn.LeakyReLU()
         
         self.to_rgb = ToRGB(output_channels)
-        self.tanh = nn.Tanh()
 
     def forward(self, x, y):
         if self.upsample:
@@ -131,7 +130,6 @@ class GeneratorBlock(nn.Module):
         x = self.activation1(x)
         
         rgb = self.to_rgb(x)
-        rgb = self.tanh(rgb)
         return x, rgb
     
     @property
@@ -156,7 +154,7 @@ class Generator(nn.Module):
     def __init__(self, initial_channels = 512, style_dim=512):
         super(Generator, self).__init__()
         self.style_dim = style_dim
-        self.alpha = 1
+        self.alpha = 0
         self.layers = nn.ModuleList([])
         self.last_channels = initial_channels
         self.first_layer = GeneratorBlock(initial_channels, initial_channels, upsample=False)
@@ -173,12 +171,13 @@ class Generator(nn.Module):
         x, out = self.first_layer(x, y[0])
         for i in range(num_layers):
             x, rgb = self.layers[i](x, y[i+1])
-            out = self.blur(self.upsample(out))
-            
+            out = self.upsample(out)
             if i == num_layers - 1:
+                out = self.blur(out)
                 out += rgb * self.alpha
             else:
                 out += rgb
+        out = self.sigmoid(out)
         return out
     
     def add_layer(self, channels):
@@ -196,39 +195,52 @@ class Generator(nn.Module):
 
 class DiscriminatorBlock(nn.Module):
     """Some Information about DiscriminatorBlock"""
-    def __init__(self, input_channels, output_channels):
+    def __init__(self, input_channels, output_channels, downsample=True):
         super(DiscriminatorBlock, self).__init__()
         self.conv1 = nn.Conv2d(input_channels, input_channels, 3, stride=1, padding=1)
+        self.dropout1 = nn.Dropout2d(p=0.25)
         self.activation1 = nn.LeakyReLU()
         self.conv2 = nn.Conv2d(input_channels, output_channels, 3, stride=1, padding=1)
+        self.dropout2 = nn.Dropout2d(p=0.25)
         self.activation2 = nn.LeakyReLU()
         self.down_sample = nn.AvgPool2d(2, stride=2, padding=0)
         self.channel_conv = nn.Conv2d(input_channels, output_channels, 1, stride=1, padding=0)
+        self.from_rgb = nn.Conv2d(3, input_channels, 1, stride=1, padding=0)
+        self.flag_downsample = downsample
     def forward(self, x):
-        x_down = self.down_sample(x)
-        x_down = self.channel_conv(x_down)
+        if self.flag_downsample:
+            x_down = self.down_sample(x)
+            x_down = self.channel_conv(x_down)
         x = self.conv1(x)
+        x = self.dropout1(x)
         x = self.activation1(x)
         x = self.conv2(x)
+        x = self.dropout2(x)
         x = self.activation2(x)
-        x = self.down_sample(x)
-        x += x_down
+        if self.flag_downsample:
+            x = self.down_sample(x)
+            x += x_down
         return x
 
 class Discriminator(nn.Module):
     """Some Information about Discriminator"""
     def __init__(self, initial_channel=512):
         super(Discriminator, self).__init__()
-        self.from_rgb = nn.Conv2d(3, initial_channel, 1, stride=1, padding=0)
-        self.layers = nn.ModuleList([])
+        self.alpha = 0
+        self.layers = nn.ModuleList([DiscriminatorBlock(initial_channel, initial_channel, downsample=False)])
         self.fc = nn.Linear(4*4*initial_channel, 1)
         self.sigmoid = nn.Sigmoid()
         self.last_channels = initial_channel
+        self.downsample = nn.AvgPool2d(2, stride=2, padding=0)
 
-    def forward(self, x):
-        x = self.from_rgb(x)
-        for layer in self.layers:
-            x = layer(x)
+    def forward(self, rgb):
+        x = self.layers[0].from_rgb(rgb) * self.alpha
+        for i, layer in enumerate(self.layers):
+            if i == 1:
+                x += (1-self.alpha) * self.layers[1].from_rgb(self.downsample(rgb))
+                x = layer(x)
+            else:
+                x = layer(x)
         x = x.view(x.shape[0], -1)
         x = self.fc(x)
         x = self.sigmoid(x)
@@ -236,7 +248,6 @@ class Discriminator(nn.Module):
     
     def add_layer(self, channels):
         self.layers.insert(0, DiscriminatorBlock(channels, self.last_channels))
-        self.from_rgb = nn.Conv2d(3, channels, 1, stride=1, padding=0)
         self.last_channels = channels
         
 class EqualLinear(nn.Module):
