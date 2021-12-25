@@ -120,7 +120,7 @@ class StyleBasedGANTrainer:
                 
                 if i % 1000 == 0:
                     self.save(save_path)
-                    img = fake_image[0].detach().cpu().numpy() * 255
+                    img = fake_image[0].detach().cpu().numpy() * 127.5 + 127.5
                     img = img.astype(np.uint8)
                     img = Image.fromarray(np.transpose(img, (1, 2, 0)))
                     img.save(os.path.join(results_dir_path, f"{epoch}_{i}.png"))
@@ -137,7 +137,7 @@ class StyleBasedGANTrainer:
             img = g(z)
             img = img.detach().cpu().numpy()[0]
             img = np.transpose(img, (1, 2, 0))
-            img = img * 255.0
+            img = img * 127.5 + 127.5
             img = img.astype(np.uint8)
             results.append(img)
         return results

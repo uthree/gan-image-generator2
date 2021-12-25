@@ -60,7 +60,7 @@ class ImageDataset(torch.utils.data.Dataset):
         # to numpy
         img = np.array(img)
         # normalize
-        img = img / 255.0
+        img = img / 127.5 - 1.0
         img = np.transpose(img, (2, 0, 1))
         # to tensor
         return torch.FloatTensor(img)
