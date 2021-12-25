@@ -11,7 +11,7 @@ test_result_dir = './tests'
 trainer = StyleBasedGANTrainer.load(model_path)
 print("Loaded model from disk.")
 
-images = trainer.generate_images(20)
+images = trainer.generate_images(5)
 
 if not os.path.exists(test_result_dir):
     os.mkdir(test_result_dir)
