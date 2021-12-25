@@ -8,6 +8,8 @@ from PIL import Image
 from tqdm import tqdm
 import numpy as np
 
+import joblib
+
 class ImageDataset(torch.utils.data.Dataset):
     """Some Information about ImageDataset"""
     def __init__(self, source_dir_pathes=[], chache_dir="./dataset_chache/", size=4, max_len=100000):
@@ -31,7 +33,7 @@ class ImageDataset(torch.utils.data.Dataset):
             os.mkdir(self.chache_dir)
         
         print("resizing images... to size: {}".format(size))
-        for i in tqdm(range(len(self.image_path_list))):
+        def fn(i):
             img_path = self.image_path_list[i]
             img = Image.open(img_path)
             # get height and width
@@ -52,6 +54,8 @@ class ImageDataset(torch.utils.data.Dataset):
             empty.save(path)
             del img
             del empty
+            
+        _ = joblib.Parallel(n_jobs=-1)(joblib.delayed(fn)(i) for i in tqdm(range(len(self.image_path_list))))
         
     def __getitem__(self, index):
         # load image
