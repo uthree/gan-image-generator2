@@ -177,6 +177,7 @@ class Generator(nn.Module):
                 out += rgb * self.alpha
             else:
                 out += rgb
+        out = (self.sigmoid(out) - 0.5) * 2
         return out
     
     def add_layer(self, channels):
