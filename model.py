@@ -159,7 +159,7 @@ class Generator(nn.Module):
         self.const = nn.Parameter(torch.zeros(initial_channels, 4, 4))
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
         self.blur = BlurRGB()
-        self.sigmoid = nn.Tanh()
+        self.tanh = nn.Tanh()
         
     def forward(self, y):
         if type(y) != list:

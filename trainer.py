@@ -52,7 +52,7 @@ class StyleBasedGANTrainer:
             print(f"Added layer with {channels} channels. now {len(self.g.layers)} layers. batch size: {bs}.")
 
         
-    def train_resolution(self, dataset: ImageDataset, batch_size=1, num_epochs=1, learning_rate=1e-4, save_path='model.pt', results_dir_path='results/', divergense_loss_weight=1.0):
+    def train_resolution(self, dataset: ImageDataset, batch_size=1, num_epochs=1, learning_rate=1e-4, save_path='model.pt', results_dir_path='results/', divergense_loss_weight=4.0):
         dataset.set_size(self.resolution)
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         num_cpus = multiprocessing.cpu_count() - 1
