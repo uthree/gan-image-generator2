@@ -153,6 +153,7 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
         self.style_dim = style_dim
         self.alpha = 0
+        self.noise_gain = 0.1
         self.layers = nn.ModuleList([])
         self.last_channels = initial_channels
         self.first_layer = GeneratorBlock(initial_channels, initial_channels, upsample=False)
@@ -188,6 +189,16 @@ class Generator(nn.Module):
     @alpha.setter
     def alpha(self, value):
         self._alpha = value
+    
+    @property
+    def noise_gain(self):
+        return self._noise_gain
+
+    @noise_gain.setter
+    def noise_gain(self, value):
+        self._noise_gain = value
+        for layer in self.layers:
+            layer.noise_gain = value
 
 
 class DiscriminatorBlock(nn.Module):
