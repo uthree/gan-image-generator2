@@ -234,7 +234,7 @@ class Discriminator(nn.Module):
         x = self.layers[0].from_rgb(rgb) * self.alpha
         for i, layer in enumerate(self.layers):
             if i == 1:
-                x += (1-self.alpha) * self.layers[1].from_rgb(self.downsample(rgb))
+                x += self.layers[1].from_rgb(self.downsample(rgb))
                 x = layer(x)
             else:
                 x = layer(x)
