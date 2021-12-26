@@ -11,6 +11,6 @@ else:
     trainer = StyleBasedGANTrainer(latent_dim=512, initial_channels=512, num_mapping_network_layers=8)
     print("Created new model.")
 
-dataset = ImageDataset(source_dir_pathes=sys.argv[1:], max_len=1000)
+dataset = ImageDataset(source_dir_pathes=sys.argv[1:], max_len=100000)
 
 trainer.train(dataset=dataset, initial_batch_size=32, num_epochs_per_resolution=100, max_resolution=1024, learning_rate=1e-4, save_path=model_path, results_dir_path='results/')
