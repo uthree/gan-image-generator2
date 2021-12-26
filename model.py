@@ -203,7 +203,7 @@ class Generator(nn.Module):
 
 class DiscriminatorBlock(nn.Module):
     """Some Information about DiscriminatorBlock"""
-    def __init__(self, input_channels, output_channels, downsample=True, dropout=0):
+    def __init__(self, input_channels, output_channels, downsample=True, dropout=0.25):
         super(DiscriminatorBlock, self).__init__()
         self.conv1 = nn.Conv2d(input_channels, input_channels, 3, stride=1, padding=1)
         self.dropout1 = nn.Dropout2d(p=dropout)
