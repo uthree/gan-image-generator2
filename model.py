@@ -203,13 +203,11 @@ class Generator(nn.Module):
 
 class DiscriminatorBlock(nn.Module):
     """Some Information about DiscriminatorBlock"""
-    def __init__(self, input_channels, output_channels, downsample=True, dropout=0.25):
+    def __init__(self, input_channels, output_channels, downsample=True):
         super(DiscriminatorBlock, self).__init__()
         self.conv1 = nn.Conv2d(input_channels, input_channels, 3, stride=1, padding=1)
-        self.dropout1 = nn.Dropout2d(p=dropout)
         self.activation1 = nn.LeakyReLU()
         self.conv2 = nn.Conv2d(input_channels, output_channels, 3, stride=1, padding=1)
-        self.dropout2 = nn.Dropout2d(p=dropout)
         self.activation2 = nn.LeakyReLU()
         self.down_sample = nn.AvgPool2d(2, stride=2, padding=0)
         self.channel_conv = nn.Conv2d(input_channels, output_channels, 1, stride=1, padding=0)
@@ -220,10 +218,8 @@ class DiscriminatorBlock(nn.Module):
             x_down = self.down_sample(x)
             x_down = self.channel_conv(x_down)
         x = self.conv1(x)
-        x = self.dropout1(x)
         x = self.activation1(x)
         x = self.conv2(x)
-        x = self.dropout2(x)
         x = self.activation2(x)
         if self.flag_downsample:
             x = self.down_sample(x)
