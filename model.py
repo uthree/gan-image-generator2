@@ -149,12 +149,12 @@ def exists(thing):
 class Generator(nn.Module):
     """Some Information about Generator"""
     """initial resolution: 4x4"""
-    def __init__(self, initial_channels = 512, style_dim=512):
+    def __init__(self, initial_channels = 512, style_dim=512, noise_gain=0.1):
         super(Generator, self).__init__()
         self.style_dim = style_dim
         self.alpha = 0
-        self.noise_gain = 0.1
         self.layers = nn.ModuleList([])
+        self.noise_gain = noise_gain
         self.last_channels = initial_channels
         self.first_layer = GeneratorBlock(initial_channels, initial_channels, upsample=False)
         self.const = nn.Parameter(torch.zeros(initial_channels, 4, 4))
