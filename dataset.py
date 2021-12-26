@@ -20,7 +20,6 @@ class ImageDataset(torch.utils.data.Dataset):
         self.chache_dir = chache_dir
         self.image_path_list = self.image_path_list[:max_len]
         self.size = -1
-        self.set_size(size)
     
     def set_size(self, size):
         if self.size == size:
