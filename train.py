@@ -18,7 +18,6 @@ augmentor = ImageDataAugmentor()
 augmentor.add_function(flip)
 augmentor.add_function(contrast)
 augmentor.add_function(random_roll)
-augmentor.add_function(gaussian_noise)
 
 dataset = ImageDataset(source_dir_pathes=sys.argv[1:], max_len=100000)
 
