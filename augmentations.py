@@ -5,7 +5,7 @@ import torch.optim as optim
 import random
 
 def flip(image):
-    return torch.flip(image, [2])
+    return torch.flip(image, [3])
 
 def contrast(image):
     return image * (1.0 + random.uniform(-0.2, 0.2))
