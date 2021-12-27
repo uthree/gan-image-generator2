@@ -141,7 +141,7 @@ class StyleBasedGANTrainer:
                 finally:
                     bar.update(1)
                     bar_now += 1
-                    if g_loss + d_loss > 80 ands alphha > 0.1:
+                    if g_loss + d_loss > 80 and alphha > 0.1:
                         tqdm.write("Losses are too high. Stopping training.")
                         return
                     
