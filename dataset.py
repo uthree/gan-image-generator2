@@ -66,21 +66,8 @@ class ImageDataset(torch.utils.data.Dataset):
         # normalize
         img = img / 127.5 - 1.0
         img = np.transpose(img, (2, 0, 1))
-        # augmentation
-        if random.random() > 0.5:
-            # flip
-            img = np.flip(img, 2).copy()
-        if random.random() > 0.5:
-            # contrast
-            img = img * (1.0 + random.uniform(-0.2, 0.2))
-        if random.random() > 0.5:
-            # brightness
-            img = img + random.uniform(-0.2, 0.2)
-        if random.random() > 0.5:
-            # add noise
-            img = img + np.random.randn(*img.shape) * random.uniform(0.0, 0.1)
-        # to tensor
-        return torch.FloatTensor(img)
+            
+        return img
 
     def __len__(self):
         return self.image_path_list.__len__()
