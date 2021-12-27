@@ -125,8 +125,6 @@ class StyleBasedGANTrainer:
                     
                     description = f"Epoch {epoch + 1}/{num_epochs}, Batch:{i} GLoss: {g_loss.item():.4f}, DLoss: {d_loss.item():.4f}, Alpha: {alpha:.4f}"
                     bar.set_description(description)
-                    bar.update(1)
-                    bar_now += 1
                     
                     if i % 1000 == 0:
                         self.save(save_path)
