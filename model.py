@@ -159,7 +159,6 @@ class Generator(nn.Module):
         self.first_layer = GeneratorBlock(initial_channels, initial_channels, upsample=False)
         self.const = nn.Parameter(torch.zeros(initial_channels, 4, 4))
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
-        self.blur = BlurRGB()
         self.tanh = nn.Tanh()
         
     def forward(self, y):
@@ -172,7 +171,6 @@ class Generator(nn.Module):
             x, rgb = self.layers[i](x, y[i+1])
             out = self.upsample(out)
             if i == num_layers - 1:
-                out = self.blur(out)
                 out += rgb * self.alpha
             else:
                 out += rgb
