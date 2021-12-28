@@ -238,6 +238,7 @@ class Discriminator(nn.Module):
         self.downsample = nn.AvgPool2d(2, stride=2, padding=0)
 
     def forward(self, rgb):
+        std = torch.std(rgb, dim=0).mean().unsqueeze(0).repeat(rgb.shape[0], 1)
         x = self.layers[0].from_rgb(rgb) * self.alpha
         for i, layer in enumerate(self.layers):
             if i == 1:
@@ -246,7 +247,6 @@ class Discriminator(nn.Module):
             else:
                 x = layer(x)
         x = x.view(x.shape[0], -1)
-        std = torch.std(x, dim=0).mean().unsqueeze(0).repeat(x.shape[0], 1)
         x = torch.cat((x, std), 1)
         x = self.fc(x)
         x = self.sigmoid(x)
