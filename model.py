@@ -246,7 +246,7 @@ class Discriminator(nn.Module):
             else:
                 x = layer(x)
         x = x.view(x.shape[0], -1)
-        std = torch.std(x, dim=0).mean().detach().unsqueeze(0).repeat(x.shape[0], 1)
+        std = torch.std(x, dim=0).mean().unsqueeze(0).repeat(x.shape[0], 1)
         x = torch.cat((x, std), 1)
         x = self.fc(x)
         x = self.sigmoid(x)
