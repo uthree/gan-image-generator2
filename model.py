@@ -232,7 +232,7 @@ class Discriminator(nn.Module):
         super(Discriminator, self).__init__()
         self.alpha = 0
         self.layers = nn.ModuleList([DiscriminatorBlock(initial_channel, initial_channel, downsample=False)])
-        self.fc= nn.Linear(4*4*initial_channel, 1)
+        self.fc= nn.Linear(4*4*initial_channel+1, 1)
         self.sigmoid = nn.Sigmoid()
         self.last_channels = initial_channel
         self.downsample = nn.AvgPool2d(2, stride=2, padding=0)
@@ -246,6 +246,8 @@ class Discriminator(nn.Module):
             else:
                 x = layer(x)
         x = x.view(x.shape[0], -1)
+        std = torch.std(x, dim=0).mean().detach().unsqueeze(0).repeat(x.shape[0], 1)
+        x = torch.cat((x, std), 1)
         x = self.fc(x)
         x = self.sigmoid(x)
         return x
