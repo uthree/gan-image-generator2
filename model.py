@@ -235,7 +235,7 @@ class Discriminator(nn.Module):
         self.fc= nn.Linear(4*4*initial_channel+1, 1)
         self.sigmoid = nn.Sigmoid()
         self.last_channels = initial_channel
-        self.downsample = nn.AvgPool2d(2, stride=2, padding=0)
+        self.downsample = nn.MaxPool2d(2, stride=2, padding=0)
 
     def forward(self, rgb):
         std = torch.std(rgb, dim=0).mean().unsqueeze(0).repeat(rgb.shape[0], 1)
