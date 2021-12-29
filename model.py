@@ -209,7 +209,7 @@ class DiscriminatorBlock(nn.Module):
         self.activation1 = nn.LeakyReLU()
         self.conv2 = nn.Conv2d(input_channels, output_channels, 3, stride=1, padding=1)
         self.activation2 = nn.LeakyReLU()
-        self.down_sample = nn.AvgPool2d(2, stride=2, padding=0)
+        self.down_sample = nn.MaxPool2d(2, stride=2)
         self.channel_conv = nn.Conv2d(input_channels, output_channels, 1, stride=1, padding=0)
         self.from_rgb = nn.Conv2d(3, input_channels, 1, stride=1, padding=0)
         self.flag_downsample = downsample

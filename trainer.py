@@ -107,6 +107,7 @@ class StyleBasedGANTrainer:
                     optimizer_g.step()
                     optimizer_m.step()
                     
+
                     # Train Discriminator
                     d.zero_grad()
                     fake_image = augmentor(fake_image.detach())
@@ -115,7 +116,7 @@ class StyleBasedGANTrainer:
                     d_loss_fake = BCE(d(fake_image), torch.zeros(N, 1).to(device)) 
 
                     d_loss = d_loss_real + d_loss_fake
-                    
+                     
                     d_loss.backward()
                     optimizer_d.step()
                     
