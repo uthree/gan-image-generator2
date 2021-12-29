@@ -74,7 +74,6 @@ class StyleBasedGANTrainer:
         optimizer_m = optim.Adam(m.parameters(), lr=learning_rate)
         optimizer_d = optim.Adam(d.parameters(), lr=learning_rate)
         
-        MSE = nn.MSELoss()
         BCE = nn.BCELoss()
         
         print(f"Started training with {num_cpus} workers in resolution {self.resolution}x.")

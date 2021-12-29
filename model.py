@@ -235,14 +235,15 @@ class Discriminator(nn.Module):
         self.fc= nn.Linear(4*4*initial_channel+1, 1)
         self.sigmoid = nn.Sigmoid()
         self.last_channels = initial_channel
-        self.downsample = nn.MaxPool2d(2, stride=2, padding=0)
+        self.downsample = nn.AvgPool2d(2, stride=2, padding=0)
+        self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
 
     def forward(self, rgb):
         std = torch.std(rgb, dim=0).mean().unsqueeze(0).repeat(rgb.shape[0], 1)
-        x = self.layers[0].from_rgb(rgb) * self.alpha
+        x = self.layers[0].from_rgb(rgb * self.alpha + self.upsample(self.downsample(rgb)) * (1 - self.alpha))
         for i, layer in enumerate(self.layers):
             if i == 1:
-                x += self.layers[1].from_rgb(self.downsample(rgb))
+                x += self.layers[1].from_rgb(self.downsample(rgb) * (1 - self.alpha))
                 x = layer(x)
             else:
                 x = layer(x)
