@@ -101,7 +101,7 @@ class StyleBasedGANTrainer:
                     
                     # generate image
                     fake_image = g(z)
-                    g_loss = BCE(d(fake_image), torch.ones(N, 1).to(device)) + MSE(d(fake_image), torch.ones(N, 1).to(device))
+                    g_loss = BCE(d(fake_image), torch.ones(N, 1).to(device))
                     
                     g_loss.backward()
                     optimizer_g.step()
@@ -111,8 +111,8 @@ class StyleBasedGANTrainer:
                     d.zero_grad()
                     fake_image = augmentor(fake_image.detach())
                     real_image = augmentor(image).detach()
-                    d_loss_real = BCE(d(real_image), torch.ones(N, 1).to(device)) + MSE(d(real_image), torch.ones(N, 1).to(device))
-                    d_loss_fake = BCE(d(fake_image), torch.zeros(N, 1).to(device)) + MSE(d(fake_image), torch.zeros(N, 1).to(device))
+                    d_loss_real = BCE(d(real_image), torch.ones(N, 1).to(device)) 
+                    d_loss_fake = BCE(d(fake_image), torch.zeros(N, 1).to(device)) 
 
                     d_loss = d_loss_real + d_loss_fake
                     
