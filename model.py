@@ -239,7 +239,7 @@ class Discriminator(nn.Module):
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
 
     def forward(self, rgb):
-        std = torch.std(rgb, dim=0).mean().unsqueeze(0).repeat(rgb.shape[0], 1)
+        std = torch.std(rgb, dim=(0, 1)).mean().unsqueeze(0).repeat(rgb.shape[0], 1)
         x = self.layers[0].from_rgb(rgb * self.alpha + self.upsample(self.downsample(rgb)) * (1 - self.alpha))
         for i, layer in enumerate(self.layers):
             if i == 1:
