@@ -251,7 +251,6 @@ class Discriminator(nn.Module):
         x = x.view(x.shape[0], -1)
         x = torch.cat((x, minibatch_std, color_std), 1)
         x = self.fc(x)
-        x = self.sigmoid(x)
         return x
     
     def add_layer(self, channels):
