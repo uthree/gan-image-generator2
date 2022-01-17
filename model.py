@@ -100,7 +100,7 @@ class GeneratorBlock(nn.Module):
     def __init__(self, input_channels, output_channels, upsample=False, noise_gain=0.1, style_dim=512):
         super(GeneratorBlock, self).__init__()
         self.upsample = upsample
-        self.upsample_layer = nn.Sequential(nn.Upsample(scale_factor=2, mode='nearest'),  Blur())
+        self.upsample_layer = nn.Upsample(scale_factor=2, mode='nearest')
         self._noise_gain = noise_gain
         
         self.affine1 = nn.Linear(style_dim, output_channels)
