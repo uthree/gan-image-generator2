@@ -100,9 +100,8 @@ class GeneratorBlock(nn.Module):
     def __init__(self, input_channels, output_channels, upsample=False, noise_gain=0.1, style_dim=512):
         super(GeneratorBlock, self).__init__()
         self.upsample = upsample
-        self.upsample_layer = nn.Upsample(scale_factor=2, mode='nearest')
-        self._noise_gain = noise_gain
-        
+        self.upsample_layer = nn.Upsample(scale_factor=2)
+        self._noise_gain = noise_gain        
         self.affine1 = nn.Linear(style_dim, output_channels)
         self.conv1 = Conv2dMod(input_channels, output_channels, 3, eps=1e-8)
         self.bias1 = PixelWiseBias(output_channels)
@@ -162,7 +161,7 @@ class Generator(nn.Module):
         self.last_channels = initial_channels
         self.first_layer = GeneratorBlock(initial_channels, initial_channels, upsample=False)
         self.const = nn.Parameter(torch.zeros(initial_channels, 4, 4))
-        self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+        self.upsample = nn.Sequential(nn.Upsample(scale_factor=2), Blur())
         self.tanh = nn.Tanh()
         
     def forward(self, y):
@@ -238,7 +237,7 @@ class Discriminator(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.last_channels = initial_channel
         self.downsample = nn.AvgPool2d(2, stride=2, padding=0)
-        self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+        self.upsample = nn.Upsample(scale_factor=2, mode='bilinear')
 
     def forward(self, rgb):
         minibatch_std = torch.std(rgb, dim=(0)).mean().unsqueeze(0).repeat(rgb.shape[0], 1)
