@@ -33,11 +33,17 @@ class Conv2dMod(nn.Module):
         weight = weight * d
         # weight: (batch_size, output_channels, input_channels, kernel_size, kernel_size)
         
-        # convolution
+        # reshape
         x = x.reshape(1, -1, H, W)
         _, _, *ws = weight.shape
         weight = weight.reshape(self.output_channels * N, *ws)
-        x = F.conv2d(x, weight, stride=1, padding=1, groups=N)
+        
+        
+        # padding
+        x = F.pad(x, (self.kernel_size // 2, self.kernel_size // 2, self.kernel_size // 2, self.kernel_size // 2), mode='replicate')
+        
+        # convolution
+        x = F.conv2d(x, weight, stride=1, padding=0, groups=N)
         x = x.reshape(N, self.output_channels, H, W)
 
         return x

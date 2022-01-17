@@ -74,6 +74,8 @@ class StyleBasedGANTrainer:
         optimizer_m = optim.Adam(m.parameters(), lr=learning_rate)
         optimizer_d = optim.Adam(d.parameters(), lr=learning_rate)
         
+        MSE = nn.MSELoss()
+        
         print(f"Started training with {num_cpus} workers in resolution {self.resolution}x.")
         bar = tqdm(total=progress_total)
         bar_now = 0
@@ -98,7 +100,8 @@ class StyleBasedGANTrainer:
                     
                     # generate image
                     fake_image = g(z)
-                    g_loss = -d(fake_image).mean()
+                    g_loss = MSE(d(fake_image), torch.ones(N, 1).to(device))
+
                     
                     g_loss.backward()
                     optimizer_g.step()
@@ -109,10 +112,8 @@ class StyleBasedGANTrainer:
                     d.zero_grad()
                     fake_image = augmentor(fake_image.detach())
                     real_image = augmentor(image).detach()
-                    d_loss_real = - torch.minimum(d(real_image) -1, torch.zeros(N, 1).to(device)).mean()
-                    d_loss_fake = - torch.minimum(-d(fake_image) -1, torch.zeros(N, 1).to(device)).mean()
 
-                    d_loss = d_loss_real + d_loss_fake
+                    d_loss = (MSE(d(real_image), torch.ones(N, 1).to(device)) + MSE(d(fake_image), torch.zeros(N, 1).to(device))) / 2
                      
                     d_loss.backward()
                     optimizer_d.step()
