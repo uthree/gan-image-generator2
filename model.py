@@ -112,13 +112,13 @@ class GeneratorBlock(nn.Module):
         self.conv1 = Conv2dMod(input_channels, output_channels, 3, eps=1e-8)
         self.bias1 = PixelWiseBias(output_channels)
         self.noise1 = NoiseInjection(gain=noise_gain)
-        self.activation1 = nn.LeakyReLU()
+        self.activation1 = nn.LeakyReLU(0.2)
         
         self.affine2 = nn.Linear(style_dim, output_channels)
         self.conv2 = Conv2dMod(output_channels, output_channels, 3, eps=1e-8)
         self.bias2 = PixelWiseBias(output_channels)
         self.noise2 = NoiseInjection(gain=noise_gain)
-        self.activation1 = nn.LeakyReLU()
+        self.activation1 = nn.LeakyReLU(0.2)
         
         self.to_rgb = ToRGB(output_channels)
 
@@ -213,9 +213,9 @@ class DiscriminatorBlock(nn.Module):
     def __init__(self, input_channels, output_channels, downsample=True):
         super(DiscriminatorBlock, self).__init__()
         self.conv1 = nn.Conv2d(input_channels, input_channels, 3, stride=1, padding=1)
-        self.activation1 = nn.LeakyReLU()
+        self.activation1 = nn.LeakyReLU(0.2)
         self.conv2 = nn.Conv2d(input_channels, output_channels, 3, stride=1, padding=1)
-        self.activation2 = nn.LeakyReLU()
+        self.activation2 = nn.LeakyReLU(0.2)
         self.down_sample = nn.MaxPool2d(2, stride=2)
         self.channel_conv = nn.Conv2d(input_channels, output_channels, 1, stride=1, padding=0)
         self.from_rgb = nn.Conv2d(3, input_channels, 1, stride=1, padding=0)
