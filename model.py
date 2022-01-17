@@ -63,24 +63,27 @@ class PixelWiseBias(nn.Module):
         x = x + self.bias[None, :, None, None]
         return x
     
-class BlurRGB(nn.Module):
-    """Blur the 3x3 3 channels"""
+class Blur(nn.Module):
+    """Some Information about Blur"""
     def __init__(self):
-        super(BlurRGB, self).__init__()
-        self.kernel = torch.tensor(
-            [
-                [1, 2, 1],
-                [2, 4, 2],
-                [1, 2, 1]
-            ]
-        )
+        super(Blur, self).__init__()
+        self.kernel = torch.tensor([[1, 2, 1],
+                                    [2, 4, 2],
+                                    [1, 2, 1]], dtype=torch.float32)
         self.kernel = self.kernel / self.kernel.sum()
-        self.kernel = self.kernel.view(1, 1, 3, 3)
-        self.kernel = self.kernel.repeat(3, 1, 1, 1)
+        self.kernel = self.kernel[None, None, :, :]
     def forward(self, x):
-        self.kernel = self.kernel.to(x.device)
-        return F.conv2d(x, self.kernel, stride=1, padding=1, groups=x.shape[1])
-
+        shape = x.shape
+        # padding
+        x = F.pad(x, (1, 1, 1, 1), mode='replicate')
+        # reshape
+        x = x.reshape(-1, 1, x.shape[2], x.shape[3])
+        # convolution
+        x = F.conv2d(x, self.kernel.to(x.device), stride=1, padding=0, groups=x.shape[1])
+        # reshape
+        x = x.reshape(shape)
+        return x
+    
 class ToRGB(nn.Module):
     """Some Information about ToRGB"""
     def __init__(self, input_channels):
@@ -97,7 +100,7 @@ class GeneratorBlock(nn.Module):
     def __init__(self, input_channels, output_channels, upsample=False, noise_gain=0.1, style_dim=512):
         super(GeneratorBlock, self).__init__()
         self.upsample = upsample
-        self.upsample_layer = nn.Upsample(scale_factor=2, mode='nearest')
+        self.upsample_layer = nn.Sequential(nn.Upsample(scale_factor=2, mode='nearest'),  Blur())
         self._noise_gain = noise_gain
         
         self.affine1 = nn.Linear(style_dim, output_channels)
@@ -117,7 +120,6 @@ class GeneratorBlock(nn.Module):
     def forward(self, x, y):
         if self.upsample:
             x = self.upsample_layer(x)
-            
 
         x = self.conv1(x, self.affine1(y))
         x = self.bias1(x)
