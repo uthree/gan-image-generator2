@@ -106,16 +106,16 @@ class StyleBasedGANTrainer:
                     optimizer_g.step()
                     optimizer_m.step()
                     
+                    if g_loss.item() < 0.5:
+                        # Train Discriminator
+                        d.zero_grad()
+                        fake_image = augmentor(fake_image.detach())
+                        real_image = augmentor(image).detach()
 
-                    # Train Discriminator
-                    d.zero_grad()
-                    fake_image = augmentor(fake_image.detach())
-                    real_image = augmentor(image).detach()
-
-                    d_loss = (MSE(d(real_image), torch.ones(N, 1).to(device)) + MSE(d(fake_image), torch.zeros(N, 1).to(device))) / 2
-                     
-                    d_loss.backward()
-                    optimizer_d.step()
+                        d_loss = (MSE(d(real_image), torch.ones(N, 1).to(device)) + MSE(d(fake_image), torch.zeros(N, 1).to(device))) / 2
+                        
+                        d_loss.backward()
+                        optimizer_d.step()
                     
                     description = f"Epoch {epoch + 1}/{num_epochs}, Batch:{i} GLoss: {g_loss.item():.4f}, DLoss: {d_loss.item():.4f}, Alpha: {alpha:.4f}"
                     bar.set_description(description)
