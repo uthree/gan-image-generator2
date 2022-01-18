@@ -103,7 +103,7 @@ class ToRGB(nn.Module):
 
 class GeneratorBlock(nn.Module):
     """Some Information about GeneratorBlock"""
-    def __init__(self, input_channels, output_channels, upsample=False, noise_gain=0.1, style_dim=512):
+    def __init__(self, input_channels, output_channels, upsample=False, noise_gain=0.01, style_dim=512):
         super(GeneratorBlock, self).__init__()
         self.upsample = upsample
         self.upsample_layer = nn.Upsample(scale_factor=2)
@@ -112,13 +112,13 @@ class GeneratorBlock(nn.Module):
         self.conv1 = Conv2dMod(input_channels, output_channels, 3, eps=1e-8)
         self.bias1 = PixelWiseBias(output_channels)
         self.noise1 = NoiseInjection(gain=noise_gain)
-        self.activation1 = nn.LeakyReLU(0.2)
+        self.activation1 = nn.PReLU()
         
         self.affine2 = nn.Linear(style_dim, output_channels)
         self.conv2 = Conv2dMod(output_channels, output_channels, 3, eps=1e-8)
         self.bias2 = PixelWiseBias(output_channels)
         self.noise2 = NoiseInjection(gain=noise_gain)
-        self.activation1 = nn.LeakyReLU(0.2)
+        self.activation1 = nn.PReLU()
         
         self.to_rgb = ToRGB(output_channels)
 
@@ -167,8 +167,8 @@ class Generator(nn.Module):
         self.last_channels = initial_channels
         self.first_layer = GeneratorBlock(initial_channels, initial_channels, upsample=False)
         self.const = nn.Parameter(torch.zeros(initial_channels, 4, 4))
-        self.upsample = nn.Sequential(nn.Upsample(scale_factor=2), Blur())
-        self.tanh = nn.Tanh()
+        self.upsample = nn.Upsample(scale_factor=2)
+        self.blur = Blur()
         
     def forward(self, y):
         if type(y) != list:
@@ -180,10 +180,10 @@ class Generator(nn.Module):
             x, rgb = self.layers[i](x, y[i+1])
             out = self.upsample(out)
             if i == num_layers - 1:
-                out += rgb * self.alpha
+                out = self.blur(out) + rgb * self.alpha
             else:
                 out += rgb
-        return self.tanh(out)
+        return out
     
     def add_layer(self, channels):
         self.layers.append(GeneratorBlock(self.last_channels, channels, upsample=True, style_dim=self.style_dim))
@@ -216,7 +216,7 @@ class DiscriminatorBlock(nn.Module):
         self.activation1 = nn.LeakyReLU(0.2)
         self.conv2 = nn.Conv2d(input_channels, output_channels, 3, stride=1, padding=1)
         self.activation2 = nn.LeakyReLU(0.2)
-        self.down_sample = nn.MaxPool2d(2, stride=2)
+        self.down_sample = nn.AvgPool2d(2, stride=2)
         self.channel_conv = nn.Conv2d(input_channels, output_channels, 1, stride=1, padding=0)
         self.from_rgb = nn.Conv2d(3, input_channels, 1, stride=1, padding=0)
         self.flag_downsample = downsample
@@ -239,8 +239,7 @@ class Discriminator(nn.Module):
         super(Discriminator, self).__init__()
         self.alpha = 0
         self.layers = nn.ModuleList([DiscriminatorBlock(initial_channel, initial_channel, downsample=False)])
-        self.fc= nn.Linear(4*4*initial_channel+2, 1)
-        self.sigmoid = nn.Sigmoid()
+        self.fc = nn.Linear(4*4*initial_channel+2, 1)
         self.last_channels = initial_channel
         self.downsample = nn.AvgPool2d(2, stride=2, padding=0)
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear')
